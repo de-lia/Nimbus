@@ -8,7 +8,7 @@ export const kinesisLessons: Lesson[] = [
     lessonId: "kinesis_lesson_1",
     title: "What is Amazon Kinesis?",
     service: "kinesis",
-    roles: ["developer", "solutions_architect", "data_engineer"],
+    roles: ["solutions_architect", "application_architect", "cloud_data_engineer", "software_development_engineer", "ml_engineer", "data_scientist"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

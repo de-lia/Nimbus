@@ -1,9 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -15,8 +14,7 @@ import InputField from "../components/InputField";
 import PrimaryButton from "../components/PrimaryButton";
 import { Colors } from "../constants/colors";
 import { useUser } from "../contexts/UserContext";
-import { signUp, validateEmail, validatePassword, validateName, signInOrSignUpWithGoogle } from "../services/auth";
-import { useGoogleAuth, fetchGoogleUserInfo } from "../services/googleAuth";
+import { signUp, validateEmail, validatePassword, validateName } from "../services/auth";
 
 const SignupScreen = ({ navigation }: any) => {
   const [loading, setLoading] = React.useState(false);
@@ -25,79 +23,6 @@ const SignupScreen = ({ navigation }: any) => {
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const { updateUser } = useUser();
-  
-  // Google Sign-In
-  const { request, response, promptAsync } = useGoogleAuth();
-
-  useEffect(() => {
-    handleGoogleResponse();
-  }, [response]);
-
-  const handleGoogleResponse = async () => {
-    if (response?.type === 'success') {
-      setLoading(true);
-      const { authentication } = response;
-      
-      if (authentication?.accessToken) {
-        // Fetch user info from Google
-        const userInfo = await fetchGoogleUserInfo(authentication.accessToken);
-        
-        if (userInfo) {
-          // Sign in or sign up with Google
-          const result = await signInOrSignUpWithGoogle(
-            userInfo.id,
-            userInfo.email,
-            userInfo.name,
-            userInfo.photoUrl
-          );
-          
-          if (result.success) {
-            // Create or update user profile
-            await updateUser({
-              userId: result.userId!,
-              name: userInfo.name,
-              email: userInfo.email,
-              avatarUrl: userInfo.photoUrl,
-              mode: null,
-              level: 1,
-              xp: 0,
-              streakDays: 0,
-              lastActiveDate: new Date().toISOString(),
-              boosters: { doubleXp: 0, streakProtectors: 1 },
-              badges: [],
-              adventuresCompleted: [],
-              dailyGoal: 10,
-              notificationsEnabled: true,
-            });
-            
-            setLoading(false);
-            
-            if (result.isNewUser) {
-              // New user, go to profile setup
-              navigation.navigate("CreateProfileStep1");
-            } else {
-              // Existing user, go to main app
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "MainApp" }],
-              });
-            }
-          } else {
-            setLoading(false);
-            Alert.alert("Error", result.error || "Failed to sign in with Google");
-          }
-        } else {
-          setLoading(false);
-          Alert.alert("Error", "Failed to get user information from Google");
-        }
-      } else {
-        setLoading(false);
-        Alert.alert("Error", "Failed to authenticate with Google");
-      }
-    } else if (response?.type === 'error') {
-      Alert.alert("Error", "Google Sign-In was cancelled or failed");
-    }
-  };
 
   const handleSignup = async () => {
     // Validate all fields
@@ -127,7 +52,7 @@ const SignupScreen = ({ navigation }: any) => {
     }
 
     setLoading(true);
-    
+
     // Create account
     const result = await signUp(email, password, name);
     
@@ -155,15 +80,7 @@ const SignupScreen = ({ navigation }: any) => {
     });
     
     setLoading(false);
-    navigation.navigate("CreateProfileStep1");
-  };
-
-  const handleGoogleSignup = () => {
-    if (!request) {
-      Alert.alert("Error", "Google Sign-In is not ready yet. Please try again.");
-      return;
-    }
-    promptAsync();
+    navigation.navigate("VerificationScreen", { email });
   };
 
   return (
@@ -220,23 +137,6 @@ const SignupScreen = ({ navigation }: any) => {
             <PrimaryButton title="Create Account" onPress={handleSignup} />
           )}
 
-          {/* Divider */}
-          <View style={styles.orWrapper}>
-            <View style={styles.line} />
-            <Text style={styles.orText}>or continue with</Text>
-            <View style={styles.line} />
-          </View>
-
-          {/* Social Sign-In Buttons */}
-          <View style={styles.socialButtons}>
-            <TouchableOpacity style={styles.socialButtonLight} onPress={handleGoogleSignup}>
-              <Text style={styles.socialTextDark}>Google</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButtonLight}>
-              <Text style={styles.socialTextDark}>Facebook</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Terms and Privacy */}
           <Text style={styles.terms}>
             By creating an account, you agree to our{" "}
@@ -278,34 +178,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: Colors.textPrimary,
     marginBottom: 30,
-  },
-  orWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 20,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.muted,
-  },
-  orText: {
-    color: Colors.textPrimary,
-    marginHorizontal: 8,
-    fontSize: 14,
-  },
-  socialButtons: { gap: 12 },
-  socialButtonLight: {
-    borderColor: Colors.muted,
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  socialTextDark: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontWeight: "500",
   },
   terms: {
     textAlign: "center",

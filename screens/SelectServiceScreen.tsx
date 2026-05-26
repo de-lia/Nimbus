@@ -53,17 +53,23 @@ const services = [
 
 interface Props {
   navigation: any;
+  route: any;
 }
 
-const SelectServiceScreen: React.FC<Props> = ({ navigation }) => {
+const SelectServiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const { setLearningPath } = useUser();
+  const returnTo = route?.params?.returnTo;
 
   const handleContinue = async () => {
     if (!selectedService) return;
     
     await setLearningPath("service", selectedService);
-    navigation.navigate("CreateProfileStep2");
+    if (returnTo === "MainApp") {
+      navigation.navigate("MainApp");
+    } else {
+      navigation.navigate("CreateProfileStep2");
+    }
   };
 
   return (

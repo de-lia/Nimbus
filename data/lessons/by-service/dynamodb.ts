@@ -8,7 +8,7 @@ export const dynamodbLessons: Lesson[] = [
     lessonId: "dynamodb_lesson_1",
     title: "What is Amazon DynamoDB?",
     service: "dynamodb",
-    roles: ["developer", "solutions_architect", "database_specialist"],
+    roles: ["software_development_engineer", "solutions_architect", "application_architect", "cloud_data_engineer", "cloud_administrator", "cloud_engineer", "cloud_devops_engineer"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

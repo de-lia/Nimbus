@@ -8,7 +8,7 @@ export const vpcLessons: Lesson[] = [
     lessonId: "vpc_lesson_1",
     title: "What is Amazon VPC?",
     service: "vpc",
-    roles: ["solutions_architect", "sysops_administrator", "network_specialist"],
+    roles: ["solutions_architect", "cloud_administrator", "cloud_engineer", "cloud_devops_engineer", "cloud_security_engineer", "cloud_security_architect", "network_engineer"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

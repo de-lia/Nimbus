@@ -8,7 +8,7 @@ export const cloudfrontLessons: Lesson[] = [
     lessonId: "cloudfront_lesson_1",
     title: "What is Amazon CloudFront?",
     service: "cloudfront",
-    roles: ["solutions_architect", "developer", "devops_engineer"],
+    roles: ["solutions_architect", "application_architect", "software_development_engineer", "cloud_devops_engineer", "network_engineer", "cloud_security_engineer", "cloud_administrator"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

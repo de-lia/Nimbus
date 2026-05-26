@@ -1,140 +1,126 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
+  SectionList,
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../constants/colors";
 import PrimaryButton from "../components/PrimaryButton";
 import { useUser } from "../contexts/UserContext";
-
-const roles = [
-  {
-    id: "cloud_practitioner",
-    title: "Cloud Practitioner",
-    description: "Foundation level - Learn AWS basics and core services",
-    icon: "☁️",
-  },
-  {
-    id: "solutions_architect",
-    title: "Solutions Architect",
-    description: "Design and deploy scalable systems on AWS",
-    icon: "🏗️",
-  },
-  {
-    id: "developer",
-    title: "Developer",
-    description: "Build and maintain applications on AWS",
-    icon: "💻",
-  },
-  {
-    id: "devops_engineer",
-    title: "DevOps Engineer",
-    description: "Automate and optimize AWS infrastructure",
-    icon: "⚙️",
-  },
-  {
-    id: "sysops_administrator",
-    title: "SysOps Administrator",
-    description: "Manage and operate systems on AWS",
-    icon: "🔧",
-  },
-  {
-    id: "security_specialist",
-    title: "Security Specialist",
-    description: "Secure AWS infrastructure and applications",
-    icon: "🔒",
-  },
-  {
-    id: "database_specialist",
-    title: "Database Specialist",
-    description: "Design and manage databases on AWS",
-    icon: "🗄️",
-  },
-  {
-    id: "data_engineer",
-    title: "Data Engineer",
-    description: "Build data pipelines and analytics solutions",
-    icon: "📊",
-  },
-  {
-    id: "ml_engineer",
-    title: "Machine Learning Engineer",
-    description: "Build and deploy ML models on AWS",
-    icon: "🤖",
-  },
-  {
-    id: "network_specialist",
-    title: "Network Specialist",
-    description: "Design and manage AWS network infrastructure",
-    icon: "🌐",
-  },
-];
+import {
+  getRolesByCategory,
+  CATEGORY_TAGS,
+  CategoryTag,
+  JobRole,
+} from "../data/jobRoles";
 
 interface Props {
   navigation: any;
+  route: any;
 }
 
-const SelectRoleScreen: React.FC<Props> = ({ navigation }) => {
+const SelectRoleScreen: React.FC<Props> = ({ navigation, route }) => {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const { setLearningPath } = useUser();
+  const returnTo = route?.params?.returnTo;
+
+  const sections = useMemo(() => {
+    const grouped = getRolesByCategory();
+    return CATEGORY_TAGS.map((tag) => ({
+      title: tag,
+      data: grouped[tag] || [],
+    }));
+  }, []);
 
   const handleContinue = async () => {
     if (!selectedRole) return;
-    
     await setLearningPath("role", selectedRole);
-    navigation.navigate("CreateProfileStep2");
+    if (returnTo === "MainApp") {
+      navigation.navigate("MainApp");
+    } else {
+      navigation.navigate("CreateProfileStep2");
+    }
   };
+
+  const renderSectionHeader = ({ section }: { section: { title: string } }) => (
+    <Text style={styles.sectionHeader}>{section.title}</Text>
+  );
+
+  const renderItem = ({ item }: { item: JobRole }) => (
+    <TouchableOpacity
+      style={[
+        styles.roleCard,
+        selectedRole === item.id && styles.roleSelected,
+      ]}
+      onPress={() => setSelectedRole(item.id)}
+    >
+      <View style={styles.roleIcon}>
+        <Text style={styles.roleEmoji}>{item.icon}</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.roleTitle}>{item.displayName}</Text>
+        <Text style={styles.roleDescription}>{item.description}</Text>
+        {selectedRole === item.id && (
+          <TouchableOpacity
+            style={styles.certPathLink}
+            onPress={() =>
+              navigation.navigate("CertificationPath", { roleId: item.id })
+            }
+          >
+            <Text style={styles.certPathLinkText}>
+              View Certification Path
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const ListHeader = () => (
+    <View>
+      {/* Progress bar */}
+      <View style={styles.progressWrapper}>
+        <View style={styles.progressBackground}>
+          <View style={[styles.progressFill, { width: "66%" }]} />
+        </View>
+        <Text style={styles.progressText}>Step 2 of 3</Text>
+      </View>
+
+      {/* Title */}
+      <Text style={styles.title}>Choose Your Role</Text>
+      <Text style={styles.subtitle}>
+        Select the AWS role you want to master
+      </Text>
+    </View>
+  );
+
+  const ListFooter = () => (
+    <View style={styles.footer}>
+      <PrimaryButton
+        title="Continue"
+        onPress={handleContinue}
+        disabled={!selectedRole}
+      />
+    </View>
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#0D1B2A" }}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* Progress bar */}
-        <View style={styles.progressWrapper}>
-          <View style={styles.progressBackground}>
-            <View style={[styles.progressFill, { width: "66%" }]} />
-          </View>
-          <Text style={styles.progressText}>Step 2 of 3</Text>
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>Choose Your Role</Text>
-        <Text style={styles.subtitle}>
-          Select the AWS role you want to master
-        </Text>
-
-        {/* Role Cards */}
-        {roles.map((role) => (
-          <TouchableOpacity
-            key={role.id}
-            style={[
-              styles.roleCard,
-              selectedRole === role.id && styles.roleSelected,
-            ]}
-            onPress={() => setSelectedRole(role.id)}
-          >
-            <View style={styles.roleIcon}>
-              <Text style={styles.roleEmoji}>{role.icon}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.roleTitle}>{role.title}</Text>
-              <Text style={styles.roleDescription}>{role.description}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-
-        {/* Continue button */}
-        <PrimaryButton
-          title="Continue"
-          onPress={handleContinue}
-          disabled={!selectedRole}
-        />
-      </ScrollView>
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={ListFooter}
+        contentContainerStyle={{ padding: 16 }}
+        stickySectionHeadersEnabled={false}
+      />
     </SafeAreaView>
   );
 };
@@ -170,6 +156,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 24,
   },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.accent,
+    marginTop: 16,
+    marginBottom: 8,
+  },
   roleCard: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -202,6 +195,18 @@ const styles = StyleSheet.create({
   roleDescription: {
     color: Colors.muted,
     fontSize: 13,
+  },
+  certPathLink: {
+    marginTop: 8,
+  },
+  certPathLinkText: {
+    color: Colors.accent,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  footer: {
+    marginTop: 10,
+    marginBottom: 20,
   },
 });
 

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { LeaderboardData, LeaderboardPeriod, LeaderboardEntry } from "../types/leaderboard";
 import { getMockLeaderboardData } from "../data/leaderboardMock";
 import { useUser } from "./UserContext";
+import { useSocial } from "./SocialContext";
 
 type LeaderboardContextType = {
   leaderboardData: LeaderboardData | null;
@@ -18,10 +19,11 @@ export const LeaderboardProvider = ({ children }: { children: ReactNode }) => {
   const [currentPeriod, setCurrentPeriod] = useState<LeaderboardPeriod>("weekly");
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
+  const { friends } = useSocial();
 
   useEffect(() => {
     refreshLeaderboard();
-  }, [currentPeriod, user]);
+  }, [currentPeriod, user, friends]);
 
   const refreshLeaderboard = async () => {
     if (!user) return;
@@ -31,8 +33,41 @@ export const LeaderboardProvider = ({ children }: { children: ReactNode }) => {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      const entries = getMockLeaderboardData(currentPeriod, user.userId);
-      const currentUserEntry = entries.find(e => e.userId === user.userId);
+      let entries = getMockLeaderboardData(currentPeriod, {
+        userId: user.userId,
+        name: user.name,
+        xp: user.xp,
+      });
+
+      // When period is "friends", filter to only friends (plus current user)
+      if (currentPeriod === "friends") {
+        const friendsSet = new Set(friends);
+        entries = entries.filter(
+          (e) => e.userId === user.userId || friendsSet.has(e.userId)
+        );
+      }
+
+      // Sort by score descending and assign sequential ranks
+      entries = entries
+        .sort((a, b) => b.score - a.score)
+        .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+      // Exclude current user if their score is lower than all other entries
+      const otherEntries = entries.filter((e) => e.userId !== user.userId);
+      if (otherEntries.length > 0) {
+        const currentEntry = entries.find((e) => e.userId === user.userId);
+        if (currentEntry) {
+          const minOtherScore = Math.min(...otherEntries.map((e) => e.score));
+          if (currentEntry.score < minOtherScore) {
+            entries = otherEntries.map((entry, index) => ({
+              ...entry,
+              rank: index + 1,
+            }));
+          }
+        }
+      }
+
+      const currentUserEntry = entries.find((e) => e.userId === user.userId);
       
       setLeaderboardData({
         period: currentPeriod,

@@ -1,3 +1,5 @@
+import { CodeFrame } from "react-native/Libraries/Core/Devtools/symbolicateStackTrace";
+
 export type LessonContentType = "text" | "quiz" | "code" | "diagram";
 
 export interface LessonContent {
@@ -6,7 +8,7 @@ export interface LessonContent {
   question?: string;
   options?: string[];
   correctAnswer?: string;
-  code?: string;
+  code?: CodeFrame;
   imageUrl?: string;
 }
 

@@ -7,23 +7,26 @@ import DashboardScreen from "../screens/DashboardScreen";
 import LessonsListScreen from "../screens/LessonsListScreen";
 import LeaderboardScreen from "../screens/LeaderBoardScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Tab = createBottomTabNavigator();
 
 const MainApp: React.FC = () => {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#0D1B2A",
-          borderTopColor: "#1B263B",
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.tabBarBorder,
           height: Platform.OS === "android" ? 95 : 110,
           paddingBottom: Platform.OS === "android" ? 35 : 50,
           paddingTop: 10,
         },
-        tabBarActiveTintColor: "#FFA500",
-        tabBarInactiveTintColor: "#A0AABF",
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: {
           fontSize: 12,
           marginBottom: 4,

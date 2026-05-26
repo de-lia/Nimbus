@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getSession, clearSession } from "../services/auth";
+
+export type Badge = {
+  level: number;
+  name: string;
+  receivedAt: string; // ISO 8601 timestamp
+  xpEarned: number;
+};
 
 type User = {
   userId: string;
@@ -17,7 +25,7 @@ type User = {
     doubleXp: number;
     streakProtectors: number;
   };
-  badges: string[];
+  badges: Badge[];
   adventuresCompleted: string[];
   dailyGoal: number;
   notificationsEnabled: boolean;
@@ -26,6 +34,8 @@ type User = {
 type UserContextType = {
   user: User | null;
   loading: boolean;
+  initialRoute: string;
+  isSessionLoading: boolean;
   createUser: (userData: User) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   addXP: (amount: number) => Promise<void>;
@@ -41,6 +51,8 @@ const USER_STORAGE_KEY = "@nimbus_user";
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialRoute, setInitialRoute] = useState<string>("Onboarding");
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
 
   useEffect(() => {
     loadUser();
@@ -53,14 +65,46 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (userData) {
         const parsedUser = JSON.parse(userData);
         console.log("Parsed user:", parsedUser);
+
+        // Backfill badges for levels already earned before this feature existed
+        const existingBadges: Badge[] = Array.isArray(parsedUser.badges) ? parsedUser.badges : [];
+        let needsSave = false;
+        const updatedBadges = [...existingBadges];
+        if (parsedUser.level > 1) {
+          for (let lvl = 2; lvl <= parsedUser.level; lvl++) {
+            if (!updatedBadges.some((b: Badge) => b.level === lvl)) {
+              updatedBadges.push({
+                level: lvl,
+                name: `Level ${lvl}`,
+                receivedAt: new Date().toISOString(),
+                xpEarned: parsedUser.xp,
+              });
+              needsSave = true;
+            }
+          }
+        }
+        if (needsSave) {
+          parsedUser.badges = updatedBadges;
+          await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(parsedUser));
+        }
+
         setUser(parsedUser);
       } else {
         console.log("No user data found");
+      }
+
+      // Check for existing session
+      const session = await getSession();
+      if (session) {
+        setInitialRoute("MainApp");
+      } else {
+        setInitialRoute("Onboarding");
       }
     } catch (error) {
       console.error("Failed to load user:", error);
     } finally {
       setLoading(false);
+      setIsSessionLoading(false);
     }
   };
 
@@ -119,11 +163,39 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const calculateLevel = (xp: number): number => {
+    let level = 1;
+    while (xp >= Math.floor(100 * Math.pow(level, 1.5))) {
+      level++;
+    }
+    return level;
+  };
+
   const addXP = async (amount: number) => {
     if (!user) return;
+    if (amount <= 0) return;
+
+    const oldLevel = calculateLevel(user.xp);
     const newXP = user.xp + amount;
-    const newLevel = Math.floor(newXP / 100) + 1;
-    await updateUser({ xp: newXP, level: newLevel });
+    const newLevel = calculateLevel(newXP);
+
+    let updatedBadges = [...user.badges];
+
+    if (newLevel > oldLevel) {
+      for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+        const alreadyExists = updatedBadges.some((b) => b.level === lvl);
+        if (!alreadyExists) {
+          updatedBadges.push({
+            level: lvl,
+            name: `Level ${lvl}`,
+            receivedAt: new Date().toISOString(),
+            xpEarned: newXP,
+          });
+        }
+      }
+    }
+
+    await updateUser({ xp: newXP, level: newLevel, badges: updatedBadges });
   };
 
   const setLearningPath = async (mode: "role" | "service", selection: string) => {
@@ -138,6 +210,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const clearUser = async () => {
     try {
+      await clearSession();
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
       setUser(null);
     } catch (error) {
@@ -146,7 +219,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, createUser, updateUser, addXP, setLearningPath, loadUserProfile, clearUser }}>
+    <UserContext.Provider value={{ user, loading, initialRoute, isSessionLoading, createUser, updateUser, addXP, setLearningPath, loadUserProfile, clearUser }}>
       {children}
     </UserContext.Provider>
   );

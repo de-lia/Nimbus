@@ -8,7 +8,7 @@ export const sagemakerLessons: Lesson[] = [
     lessonId: "sagemaker_lesson_1",
     title: "What is Amazon SageMaker?",
     service: "sagemaker",
-    roles: ["developer", "data_scientist", "ml_engineer"],
+    roles: ["ml_engineer", "data_scientist", "ml_ops_engineer", "cloud_data_engineer", "prompt_engineer"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

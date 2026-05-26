@@ -8,7 +8,7 @@ export const elbLessons: Lesson[] = [
     lessonId: "elb_lesson_1",
     title: "What is Elastic Load Balancing?",
     service: "elb",
-    roles: ["solutions_architect", "sysops_administrator", "devops_engineer"],
+    roles: ["solutions_architect", "application_architect", "cloud_administrator", "cloud_engineer", "cloud_devops_engineer", "network_engineer", "cloud_security_engineer"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

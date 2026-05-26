@@ -8,7 +8,7 @@ export const ec2Lessons: Lesson[] = [
     lessonId: "ec2_lesson_1",
     title: "What is Amazon EC2?",
     service: "ec2",
-    roles: ["cloud_practitioner", "solutions_architect", "sysops_administrator"],
+    roles: ["solutions_architect", "application_architect", "software_development_engineer", "cloud_administrator", "cloud_engineer", "cloud_devops_engineer", "cloud_security_engineer", "network_engineer"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

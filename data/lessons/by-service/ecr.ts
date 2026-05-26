@@ -8,7 +8,7 @@ export const ecrLessons: Lesson[] = [
     lessonId: "ecr_lesson_1",
     title: "What is Amazon ECR?",
     service: "ecr",
-    roles: ["developer", "devops_engineer", "solutions_architect"],
+    roles: ["software_development_engineer", "cloud_devops_engineer", "solutions_architect", "cloud_engineer", "cloud_administrator", "devsecops_engineer"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,

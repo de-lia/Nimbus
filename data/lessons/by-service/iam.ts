@@ -8,7 +8,7 @@ export const iamLessons: Lesson[] = [
     lessonId: "iam_lesson_1",
     title: "What is AWS IAM?",
     service: "iam",
-    roles: ["cloud_practitioner", "solutions_architect", "sysops_administrator", "security_specialist"],
+    roles: ["solutions_architect", "application_architect", "cloud_administrator", "cloud_engineer", "cloud_devops_engineer", "devsecops_engineer", "cloud_security_engineer", "cloud_security_architect", "software_development_engineer"],
     durationSeconds: 180,
     difficulty: "easy",
     xpReward: 50,
